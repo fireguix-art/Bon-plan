@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/data/(.*)",
+      "headers": { "Cache-Control": "no-cache, no-store, must-revalidate" },
+      "dest": "/data/$1"
+    }
+  ]
+}
