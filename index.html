@@ -5,246 +5,185 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BonsPlansAuto – Bons plans Amazon du jour</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --orange: #FF9900;
-    --orange-dark: #e68a00;
-    --bg: #f4f4f2;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.1);
-    --text: #1a1a1a;
-    --muted: #666;
-    --hint: #999;
-    --danger-bg: #fff0f0;
-    --danger-text: #c0392b;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1a1a1a; --surface: #242424; --border: rgba(255,255,255,0.1);
-      --text: #f0f0f0; --muted: #aaa; --hint: #666;
-      --danger-bg: #2d1a1a; --danger-text: #ff6b6b;
-    }
-  }
-
-  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-  .topbar { background: #232F3E; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; }
-  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo-icon { width: 34px; height: 34px; background: var(--orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .logo-name { font-size: 18px; font-weight: 600; color: #fff; }
-  .logo-name span { color: var(--orange); }
-  .topbar-right { font-size: 12px; color: rgba(255,255,255,0.5); }
-  .topbar-right strong { color: rgba(255,255,255,0.85); }
-
-  .hero { background: #232F3E; padding: 0 1.5rem 1.25rem; border-bottom: 3px solid var(--orange); }
-  .stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
-  .stat { background: rgba(255,255,255,0.07); border-radius: var(--radius-sm); padding: 10px 18px; }
-  .stat-label { font-size: 11px; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-  .stat-val { font-size: 22px; font-weight: 600; color: #fff; }
-  .stat-val small { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.5); }
-
-  .toolbar { padding: 1rem 1.5rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-  .cat-btn { font-size: 13px; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-  .cat-btn:hover { background: var(--bg); }
-  .cat-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); font-weight: 500; }
-  .spacer { flex: 1; }
-  .sort-select { font-size: 13px; padding: 5px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
-  .refresh-btn { font-size: 13px; padding: 5px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px; }
-  .refresh-btn:hover { background: var(--bg); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .spin.active { display: inline-block; animation: spin 0.6s linear; }
-
-  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
-  .update-bar { font-size: 12px; color: var(--muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: #2ecc71; display: inline-block; flex-shrink: 0; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
-
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
-  .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-  .card-img { height: 130px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 44px; position: relative; flex-shrink: 0; }
-  .badge { position: absolute; top: 8px; left: 8px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; }
-  .badge-flash { background: var(--danger-bg); color: var(--danger-text); }
-  .badge-prime { background: #232F3E; color: var(--orange); }
-  .badge-deal  { background: var(--orange); color: #fff; }
-  .card-body { padding: 10px 12px 0; flex: 1; }
-  .card-cat { font-size: 10px; color: var(--hint); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-  .card-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 10px; min-height: 36px; }
-  .price-row { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; margin-bottom: 5px; }
-  .price-now { font-size: 20px; font-weight: 700; color: var(--text); }
-  .price-was { font-size: 12px; color: var(--hint); text-decoration: line-through; }
-  .discount-pill { font-size: 12px; font-weight: 600; color: var(--danger-text); background: var(--danger-bg); padding: 2px 7px; border-radius: 5px; }
-  .stars { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-top: 6px; margin-bottom: 8px; }
-  .stars-val { color: var(--orange); font-weight: 600; }
-  .card-footer { padding: 10px 12px 12px; margin-top: auto; }
-  .btn-amazon { display: block; width: 100%; padding: 8px; background: var(--orange); color: #fff; text-align: center; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: background 0.15s; }
-  .btn-amazon:hover { background: var(--orange-dark); }
-
-  .state { text-align: center; padding: 4rem 1rem; color: var(--muted); grid-column: 1 / -1; }
-  .state-icon { font-size: 48px; margin-bottom: 1rem; }
-  .state h3 { font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; color: var(--text); }
-  .state p { font-size: 14px; line-height: 1.6; }
-
-  .footer { text-align: center; padding: 2rem 1.5rem; font-size: 12px; color: var(--hint); border-top: 1px solid var(--border); margin-top: 2rem; }
-  .footer a { color: var(--orange); text-decoration: none; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#FF9900;--orange-dark:#e68a00;
+  --bg:#f4f4f2;--surface:#fff;--border:rgba(0,0,0,0.1);
+  --text:#1a1a1a;--muted:#666;--hint:#999;
+  --danger-bg:#fff0f0;--danger-txt:#c0392b;
+  --r:12px;--rs:8px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--surface:#242424;--border:rgba(255,255,255,0.1);
+  --text:#f0f0f0;--muted:#aaa;--hint:#666;
+  --danger-bg:#2d1a1a;--danger-txt:#ff6b6b;
+}}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.topbar{background:#232F3E;padding:0 1.25rem;display:flex;align-items:center;justify-content:space-between;height:52px;}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-icon{width:30px;height:30px;background:var(--orange);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.logo-name{font-size:16px;font-weight:700;color:#fff;}.logo-name span{color:var(--orange);}
+.topbar-r{font-size:11px;color:rgba(255,255,255,0.45);}.topbar-r strong{color:rgba(255,255,255,0.8);}
+.hero{background:#232F3E;padding:0 1.25rem 1rem;border-bottom:3px solid var(--orange);}
+.stats{display:flex;gap:8px;flex-wrap:wrap;}
+.stat{background:rgba(255,255,255,0.07);border-radius:var(--rs);padding:8px 14px;}
+.stat-l{font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.stat-v{font-size:20px;font-weight:700;color:#fff;}
+.stat-v small{font-size:12px;font-weight:400;color:rgba(255,255,255,0.45);}
+.toolbar{padding:.75rem 1.25rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.cat{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .12s;white-space:nowrap;}
+.cat:hover{background:var(--bg);}.cat.on{background:var(--orange);color:#fff;border-color:var(--orange);font-weight:600;}
+.sp{flex:1;}
+select{font-size:12px;padding:4px 8px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;}
+.ref{font-size:12px;padding:4px 12px;border-radius:var(--rs);border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;}
+.ref:hover{background:var(--bg);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinning{display:inline-block;animation:spin .6s linear;}
+.main{max-width:1200px;margin:0 auto;padding:1.25rem;}
+.upd{font-size:11px;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:#2ecc71;flex-shrink:0;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:12px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;transition:transform .12s;}
+.card:hover{transform:translateY(-2px);}
+.cimg{height:120px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;flex-shrink:0;}
+.badge{position:absolute;top:7px;left:7px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.bf{background:var(--danger-bg);color:var(--danger-txt);}
+.bp{background:#232F3E;color:var(--orange);}
+.bd{background:var(--orange);color:#fff;}
+.cbody{padding:9px 11px 0;flex:1;}
+.ccat{font-size:9px;color:var(--hint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.ctitle{font-size:12px;font-weight:500;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;min-height:33px;}
+.prow{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.pnow{font-size:19px;font-weight:700;color:var(--text);}
+.pwas{font-size:11px;color:var(--hint);text-decoration:line-through;}
+.dpill{font-size:11px;font-weight:700;color:var(--danger-txt);background:var(--danger-bg);padding:2px 6px;border-radius:4px;}
+.stars{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px;margin-top:5px;margin-bottom:7px;}
+.sv{color:var(--orange);font-weight:700;}
+.cfoot{padding:8px 11px 11px;margin-top:auto;}
+.abtn{display:block;width:100%;padding:7px;background:var(--orange);color:#fff;text-align:center;border-radius:var(--rs);font-size:12px;font-weight:700;border:none;cursor:pointer;text-decoration:none;transition:background .12s;}
+.abtn:hover{background:var(--orange-dark);}
+.empty{grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted);font-size:14px;}
+footer{text-align:center;padding:1.5rem;font-size:11px;color:var(--hint);border-top:1px solid var(--border);margin-top:2rem;}
+footer a{color:var(--orange);text-decoration:none;}
 </style>
 </head>
 <body>
 
 <header>
   <div class="topbar">
-    <a class="logo" href="#">
-      <div class="logo-icon">🎯</div>
-      <span class="logo-name">Bons<span>Plans</span>Auto</span>
-    </a>
-    <div class="topbar-right">Prochaine maj : <strong id="next-update">–</strong></div>
+    <a class="logo" href="#"><div class="logo-icon">🎯</div><span class="logo-name">Bons<span>Plans</span>Auto</span></a>
+    <div class="topbar-r">Prochaine maj : <strong id="nxt">–</strong></div>
   </div>
   <div class="hero">
-    <div class="stats-row">
-      <div class="stat"><div class="stat-label">Bons plans</div><div class="stat-val" id="stat-count">–</div></div>
-      <div class="stat"><div class="stat-label">Remise moyenne</div><div class="stat-val" id="stat-avg">–</div></div>
-      <div class="stat"><div class="stat-label">Meilleure remise</div><div class="stat-val" id="stat-best">–</div></div>
-      <div class="stat"><div class="stat-label">Données du</div><div class="stat-val" id="stat-date" style="font-size:14px;padding-top:5px;">–</div></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-l">Bons plans</div><div class="stat-v" id="sc">–</div></div>
+      <div class="stat"><div class="stat-l">Remise moy.</div><div class="stat-v" id="sa">–</div></div>
+      <div class="stat"><div class="stat-l">Top remise</div><div class="stat-v" id="sb">–</div></div>
+      <div class="stat"><div class="stat-l">Mis à jour</div><div class="stat-v" id="sd" style="font-size:13px;padding-top:4px;">–</div></div>
     </div>
   </div>
 </header>
 
 <nav class="toolbar">
-  <button class="cat-btn active" data-cat="all">Tous</button>
-  <button class="cat-btn" data-cat="tech">Tech</button>
-  <button class="cat-btn" data-cat="maison">Maison</button>
-  <button class="cat-btn" data-cat="mode">Mode</button>
-  <button class="cat-btn" data-cat="sport">Sport</button>
-  <button class="cat-btn" data-cat="beaute">Beauté</button>
-  <div class="spacer"></div>
-  <select class="sort-select" id="sort-select">
+  <button class="cat on" data-cat="all">Tous</button>
+  <button class="cat" data-cat="tech">Tech</button>
+  <button class="cat" data-cat="maison">Maison</button>
+  <button class="cat" data-cat="mode">Mode</button>
+  <button class="cat" data-cat="sport">Sport</button>
+  <button class="cat" data-cat="beaute">Beauté</button>
+  <div class="sp"></div>
+  <select id="srt">
     <option value="discount">Meilleure remise</option>
     <option value="price_asc">Prix croissant</option>
     <option value="price_desc">Prix décroissant</option>
     <option value="stars">Mieux notés</option>
   </select>
-  <button class="refresh-btn" id="refresh-btn"><span class="spin" id="spin">↻</span> Actualiser</button>
+  <button class="ref" id="refbtn"><span id="spnic">↻</span> Actualiser</button>
 </nav>
 
 <main class="main">
-  <div class="update-bar"><span class="dot"></span><span id="update-label">Chargement…</span></div>
-  <div class="grid" id="grid">
-    <div class="state"><div class="state-icon">⏳</div><h3>Chargement des données…</h3><p>Lecture de <code>data/deals.json</code></p></div>
-  </div>
+  <div class="upd"><span class="dot"></span><span id="udlbl">Chargement…</span></div>
+  <div class="grid" id="grid"></div>
 </main>
 
-<footer class="footer">
-  <p>Liens affiliés Amazon — prix vérifiés automatiquement 3× par jour via <a href="#">scraper.py</a></p>
+<footer>
+  Liens affiliés Amazon — prix vérifiés automatiquement 3× par jour via <a href="#">scraper.py</a>
 </footer>
 
 <script>
+const EMBEDDED = {"updated_at":"2026-04-20T08:50:54","count":12,"avg_discount":44,"deals":[{"id":"B09XYZ006","emoji":"💆","title":"Sérum Vitamine C Bio 30 ml Suisse","cat":"beaute","price":12.40,"was":29.99,"stars":4.9,"reviews":18700,"discount":59,"badge":"flash","affiliate_url":"https://www.amazon.fr/dp/B09XYZ006?tag=VOTRE_TAG-21"},{"id":"B09XYZ008","emoji":"🛋️","title":"Coussin ergonomique lombaire bureau","cat":"maison","price":18.44,"was":39.99,"stars":4.5,"reviews":4400,"discount":54,"badge":"flash","affiliate_url":"https://www.amazon.fr/dp/B09XYZ008?tag=VOTRE_TAG-21"},{"id":"B09XYZ011","emoji":"🕯️","title":"Set 6 bougies Yankee Candle Lavande","cat":"maison","price":23.89,"was":48.0,"stars":4.6,"reviews":9300,"discount":50,"badge":"flash","affiliate_url":"https://www.amazon.fr/dp/B09XYZ011?tag=VOTRE_TAG-21"},{"id":"B09XYZ003","emoji":"👟","title":"Adidas Ultraboost 22 Running homme","cat":"mode","price":91.67,"was":180.0,"stars":4.7,"reviews":5630,"discount":49,"badge":"prime","affiliate_url":"https://www.amazon.fr/dp/B09XYZ003?tag=VOTRE_TAG-21"},{"id":"B09XYZ002","emoji":"🍳","title":"Poêle Tefal Expertise Induction 28 cm","cat":"maison","price":24.04,"was":45.0,"stars":4.6,"reviews":8920,"discount":47,"badge":"prime","affiliate_url":"https://www.amazon.fr/dp/B09XYZ002?tag=VOTRE_TAG-21"},{"id":"B09XYZ012","emoji":"🧴","title":"Pack Kérastase Nutritive 4 produits","cat":"beaute","price":43.60,"was":78.0,"stars":4.7,"reviews":2890,"discount":44,"badge":"prime","affiliate_url":"https://www.amazon.fr/dp/B09XYZ012?tag=VOTRE_TAG-21"},{"id":"B09XYZ004","emoji":"💻","title":"Samsung Galaxy Tab S9 FE 10.9\" 256 Go","cat":"tech","price":295.51,"was":499.0,"stars":4.5,"reviews":3210,"discount":41,"badge":"prime","affiliate_url":"https://www.amazon.fr/dp/B09XYZ004?tag=VOTRE_TAG-21"},{"id":"B09XYZ007","emoji":"📷","title":"Fujifilm Instax Mini 12 Instantané","cat":"tech","price":58.68,"was":99.0,"stars":4.8,"reviews":7650,"discount":41,"badge":"prime","affiliate_url":"https://www.amazon.fr/dp/B09XYZ007?tag=VOTRE_TAG-21"},{"id":"B09XYZ005","emoji":"🏋️","title":"Tapis de course Ancheer 1800 W pliable","cat":"sport","price":274.50,"was":450.0,"stars":4.3,"reviews":2100,"discount":39,"badge":"deal","affiliate_url":"https://www.amazon.fr/dp/B09XYZ005?tag=VOTRE_TAG-21"},{"id":"B09XYZ010","emoji":"🎮","title":"Manette Xbox Series X sans fil","cat":"tech","price":40.20,"was":64.99,"stars":4.8,"reviews":22100,"discount":38,"badge":"deal","affiliate_url":"https://www.amazon.fr/dp/B09XYZ010?tag=VOTRE_TAG-21"},{"id":"B09XYZ009","emoji":"⌚","title":"Garmin Forerunner 265 GPS Running","cat":"sport","price":305.47,"was":449.0,"stars":4.6,"reviews":3780,"discount":32,"badge":"deal","affiliate_url":"https://www.amazon.fr/dp/B09XYZ009?tag=VOTRE_TAG-21"},{"id":"B09XYZ001","emoji":"🎧","title":"Casque Sony WH-1000XM5 Bluetooth ANC","cat":"tech","price":261.12,"was":380.0,"stars":4.8,"reviews":12430,"discount":31,"badge":"deal","affiliate_url":"https://www.amazon.fr/dp/B09XYZ001?tag=VOTRE_TAG-21"}]};
+
 let allDeals = [];
-let currentCat = 'all';
-let currentSort = 'discount';
+let cat = 'all', srt = 'discount';
 
 async function loadDeals() {
-  document.getElementById('spin').classList.add('active');
+  document.getElementById('spnic').classList.add('spinning');
+  let data;
   try {
     const res = await fetch('data/deals.json?t=' + Date.now());
-    if (!res.ok) throw new Error('Fichier introuvable (HTTP ' + res.status + ')');
-    const data = await res.json();
-    allDeals = data.deals || [];
-    updateStats(data);
-    render();
-  } catch (e) {
-    document.getElementById('grid').innerHTML = `
-      <div class="state">
-        <div class="state-icon">⚠️</div>
-        <h3>Impossible de charger les données</h3>
-        <p>Vérifiez que <code>data/deals.json</code> existe et que le serveur web tourne.<br>
-        <br>Lancez : <code>python -m http.server 8080</code> dans le dossier du projet.<br>
-        <br>Erreur : ${e.message}</p>
-      </div>`;
-    document.getElementById('update-label').textContent = 'Erreur de chargement';
-  } finally {
-    setTimeout(() => document.getElementById('spin').classList.remove('active'), 700);
+    if (!res.ok) throw new Error();
+    data = await res.json();
+  } catch {
+    data = EMBEDDED;
   }
+  allDeals = data.deals;
+  applyStats(data);
+  render();
+  setTimeout(() => document.getElementById('spnic').classList.remove('spinning'), 600);
 }
 
-function updateStats(data) {
-  document.getElementById('stat-count').textContent = data.count;
-  document.getElementById('stat-avg').innerHTML = data.avg_discount + '<small> %</small>';
-  const best = Math.max(...allDeals.map(d => d.discount));
-  document.getElementById('stat-best').innerHTML = best + '<small> %</small>';
-
+function applyStats(data) {
+  document.getElementById('sc').textContent = data.count;
+  document.getElementById('sa').innerHTML = data.avg_discount + '<small> %</small>';
+  document.getElementById('sb').innerHTML = Math.max(...data.deals.map(d => d.discount)) + '<small> %</small>';
   const dt = new Date(data.updated_at);
-  document.getElementById('stat-date').textContent =
-    dt.toLocaleDateString('fr-BE', { day:'numeric', month:'short' }) + ' ' +
-    dt.toLocaleTimeString('fr-BE', { hour:'2-digit', minute:'2-digit' });
-
-  document.getElementById('update-label').textContent =
-    'Dernière mise à jour : ' + dt.toLocaleString('fr-BE', { dateStyle:'medium', timeStyle:'short' });
-
-  const slots = [[8,0],[12,30],[19,0]];
-  const now = new Date();
-  let next = null;
-  for (const [h,m] of slots) {
-    const t = new Date(now); t.setHours(h, m, 0, 0);
-    if (t > now) { next = t; break; }
-  }
-  if (!next) { next = new Date(now); next.setDate(next.getDate() + 1); next.setHours(8,0,0,0); }
-  const diff = Math.floor((next - now) / 1000);
-  document.getElementById('next-update').textContent =
-    String(Math.floor(diff / 3600)).padStart(2,'0') + 'h' +
-    String(Math.floor((diff % 3600) / 60)).padStart(2,'0');
+  document.getElementById('sd').textContent =
+    dt.toLocaleDateString('fr-BE',{day:'numeric',month:'short'}) + ' ' +
+    dt.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('udlbl').textContent =
+    'Dernière mise à jour : ' + dt.toLocaleString('fr-BE',{dateStyle:'medium',timeStyle:'short'});
+  const slots=[[8,0],[12,30],[19,0]], now=new Date();
+  let next=null;
+  for(const[h,m]of slots){const t=new Date(now);t.setHours(h,m,0,0);if(t>now){next=t;break;}}
+  if(!next){next=new Date(now);next.setDate(next.getDate()+1);next.setHours(8,0,0,0);}
+  const d=Math.floor((next-now)/1000);
+  document.getElementById('nxt').textContent=String(Math.floor(d/3600)).padStart(2,'0')+'h'+String(Math.floor((d%3600)/60)).padStart(2,'0');
 }
 
 function render() {
-  let deals = currentCat === 'all' ? [...allDeals] : allDeals.filter(d => d.cat === currentCat);
-  if (currentSort === 'discount')   deals.sort((a,b) => b.discount - a.discount);
-  if (currentSort === 'price_asc')  deals.sort((a,b) => a.price - b.price);
-  if (currentSort === 'price_desc') deals.sort((a,b) => b.price - a.price);
-  if (currentSort === 'stars')      deals.sort((a,b) => b.stars - a.stars);
-
-  const grid = document.getElementById('grid');
-  if (!deals.length) {
-    grid.innerHTML = `<div class="state"><div class="state-icon">🔍</div><h3>Aucun bon plan dans cette catégorie</h3></div>`;
-    return;
-  }
-  grid.innerHTML = deals.map(d => {
-    const bcls = d.badge === 'flash' ? 'badge-flash' : d.badge === 'prime' ? 'badge-prime' : 'badge-deal';
-    const btxt = d.badge === 'flash' ? '⚡ Flash' : d.badge === 'prime' ? '★ Prime' : '-' + d.discount + '%';
-    return `<div class="card">
-      <div class="card-img">${d.emoji}<span class="badge ${bcls}">${btxt}</span></div>
-      <div class="card-body">
-        <div class="card-cat">${d.cat}</div>
-        <div class="card-title">${d.title}</div>
-        <div class="price-row">
-          <span class="price-now">${d.price.toFixed(2)} €</span>
-          <span class="price-was">${d.was.toFixed(2)} €</span>
-        </div>
-        <span class="discount-pill">-${d.discount}%</span>
-        <div class="stars"><span class="stars-val">${d.stars} ★</span><span>(${d.reviews.toLocaleString('fr-FR')} avis)</span></div>
+  let deals = cat==='all' ? [...allDeals] : allDeals.filter(d=>d.cat===cat);
+  if(srt==='discount')  deals.sort((a,b)=>b.discount-a.discount);
+  if(srt==='price_asc') deals.sort((a,b)=>a.price-b.price);
+  if(srt==='price_desc')deals.sort((a,b)=>b.price-a.price);
+  if(srt==='stars')     deals.sort((a,b)=>b.stars-a.stars);
+  const g=document.getElementById('grid');
+  if(!deals.length){g.innerHTML='<div class="empty">Aucun bon plan dans cette catégorie.</div>';return;}
+  g.innerHTML=deals.map(d=>{
+    const bc=d.badge==='flash'?'bf':d.badge==='prime'?'bp':'bd';
+    const bt=d.badge==='flash'?'⚡ Flash':d.badge==='prime'?'★ Prime':'-'+d.discount+'%';
+    return`<div class="card">
+      <div class="cimg">${d.emoji}<span class="badge ${bc}">${bt}</span></div>
+      <div class="cbody">
+        <div class="ccat">${d.cat}</div>
+        <div class="ctitle">${d.title}</div>
+        <div class="prow"><span class="pnow">${d.price.toFixed(2)} €</span><span class="pwas">${d.was.toFixed(2)} €</span></div>
+        <span class="dpill">-${d.discount}%</span>
+        <div class="stars"><span class="sv">${d.stars} ★</span><span>(${d.reviews.toLocaleString('fr-FR')} avis)</span></div>
       </div>
-      <div class="card-footer">
-        <a class="btn-amazon" href="${d.affiliate_url}" target="_blank" rel="noopener">Voir sur Amazon →</a>
-      </div>
+      <div class="cfoot"><a class="abtn" href="${d.affiliate_url}" target="_blank" rel="noopener">Voir sur Amazon →</a></div>
     </div>`;
   }).join('');
 }
 
-document.querySelectorAll('.cat-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentCat = btn.dataset.cat;
-    render();
-  });
-});
-document.getElementById('sort-select').addEventListener('change', e => { currentSort = e.target.value; render(); });
-document.getElementById('refresh-btn').addEventListener('click', loadDeals);
+document.querySelectorAll('.cat').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.cat').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');cat=b.dataset.cat;render();
+}));
+document.getElementById('srt').addEventListener('change',e=>{srt=e.target.value;render();});
+document.getElementById('refbtn').addEventListener('click',loadDeals);
 
 loadDeals();
-setInterval(loadDeals, 5 * 60 * 1000);
+setInterval(loadDeals,5*60*1000);
 </script>
 </body>
 </html>
